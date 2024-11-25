@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: authorization
+  datasource:
+    url: postgresql://${POSTGRESQL_HOSTNAME}:{POSTGRESQL_PORT}/{POSTGRESQL_DATABASE}
+    username: ${POSTGRESQL_USERNAME}
+    password: ${POSTGRESQL_PASSWORD}
+    driver-class-name: org.postgresql.Driver
