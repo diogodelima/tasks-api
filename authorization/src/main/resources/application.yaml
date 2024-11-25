@@ -1,8 +1,27 @@
+server:
+  port: 9000
+
 spring:
   application:
     name: authorization
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: postgresql://${POSTGRESQL_HOSTNAME}:{POSTGRESQL_PORT}/{POSTGRESQL_DATABASE}
+    url: jdbc:postgresql://${POSTGRESQL_HOSTNAME}:${POSTGRESQL_PORT}/${POSTGRESQL_DATABASE}
     username: ${POSTGRESQL_USERNAME}
     password: ${POSTGRESQL_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+logging:
+  level:
+    org.springframework.security: trace
+    org.springframework.security.web.access.AccessDeniedHandlerImpl: DEBUG
+    org.springframework.security.web.access.ExceptionTranslationFilter: DEBUG
+    org.springframework.web: DEBUG
+
+client:
+  id: ${CLIENT_ID}
+  secret: ${CLIENT_SECRET}
