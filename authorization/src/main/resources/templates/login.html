@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+    <head>
+        <title>Log In</title>
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    </head>
+
+    <body>
+
+        <main>
+
+            <div class="container">
+
+                <div class="welcome">
+
+                    <h1>Welcome Back</h1>
+                    <h4>Don't have an account yet? <a href="https://google.pt">Sign up</a></h4>
+
+                </div>
+
+                <form th:action="@{/login}" method="post">
+
+                    <div>
+                        <i class='bx bx-envelope'></i>
+                        <label for="username"></label><input type="text" id="username" name="username" placeholder="email address">
+                    </div>
+
+                    <div>
+                        <i class='bx bx-lock'></i>
+                        <label for="password"></label><input type="password" id="password" name="password" placeholder="password">
+                    </div>
+
+                    <button type="submit">Login</button>
+
+                    <div class="line-container">
+                        <span class="line-text">OR</span>
+                    </div>
+
+                    <div class="social-login">
+                        <a href="https://google.pt"><img th:src="@{/img/google-icon.svg}" alt="Google Log In"></a>
+                        <a href="https://github.com"><img th:src="@{/img/github-icon.svg}" alt="Github Log In"></a>
+                        <a href="https://linkedin.com"><img th:src="@{/img/linkedin-icon.svg}" alt="Linkedin Log In"></a>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </main>
+
+    </body>
+
+</html>
