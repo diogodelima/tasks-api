@@ -99,7 +99,7 @@ form div {
 
 }
 
-form div:focus-within {
+form .input-container:focus-within {
     border: 1px solid var(--highlight);
 }
 

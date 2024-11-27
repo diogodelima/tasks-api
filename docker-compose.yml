@@ -10,10 +10,24 @@ services:
       - network
     env_file:
       - .env
+  tasks-service:
+    build: ./tasks-service
+    networks:
+      - network
+    env_file:
+      - .env
   authorization-server:
     build: ./authorization
     ports:
-      - "9000:9000"
+      - "9000:8080"
+    networks:
+      - network
+    env_file:
+      - .env
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
     networks:
       - network
     env_file:

@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: gateway
+  config:
+    import: optional:file:.env[.properties]
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://authorization-server:8080
