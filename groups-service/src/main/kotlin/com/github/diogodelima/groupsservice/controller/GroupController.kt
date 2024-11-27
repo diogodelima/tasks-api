@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -23,9 +24,12 @@ class GroupController(
 ) {
 
     @PostMapping
-    fun create(@RequestBody @Valid dto: GroupCreateDto): ResponseEntity<ApiResponseDto<GroupDto>> {
+    fun create(
+        @RequestHeader("Authorization") token: String,
+        @RequestBody @Valid dto: GroupCreateDto
+    ): ResponseEntity<ApiResponseDto<GroupDto>> {
 
-        val group = groupService.create(dto.name, dto.description, dto.id)
+        val group = groupService.create(dto.name, dto.description, token.split(" ")[1])
 
         return ResponseEntity
             .status(HttpStatus.CREATED)

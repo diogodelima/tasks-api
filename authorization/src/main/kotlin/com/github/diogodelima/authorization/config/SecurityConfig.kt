@@ -10,8 +10,12 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationContext
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationToken
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
@@ -25,12 +29,23 @@ class SecurityConfig {
     @Order(1)
     fun authorizationServerSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
 
+        val userInfoMapper: (OidcUserInfoAuthenticationContext) -> OidcUserInfo = { context ->
+                val authentication: OidcUserInfoAuthenticationToken = context.getAuthentication()
+                val principal = authentication.principal as JwtAuthenticationToken
+                OidcUserInfo(principal.token.claims)
+            }
+
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http)
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer::class.java)
-            .oidc(Customizer.withDefaults())
+            .oidc { oidc ->
+                oidc.userInfoEndpoint { userInfo ->
+                    userInfo.userInfoMapper(userInfoMapper)
+                }
+            }
 
         http
+            .oauth2ResourceServer { it.jwt(Customizer.withDefaults()) }
             .exceptionHandling { exceptions ->
                 exceptions
                     .defaultAuthenticationEntryPointFor(
