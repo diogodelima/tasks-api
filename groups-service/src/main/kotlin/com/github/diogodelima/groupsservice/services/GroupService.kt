@@ -1,13 +1,13 @@
 package com.github.diogodelima.groupsservice.services
 
-import com.github.diogodelima.groupsservice.domain.*
-import com.github.diogodelima.groupsservice.repositories.GroupRepository
+import com.github.diogodelima.groupsservice.domain.Group
+import com.github.diogodelima.groupsservice.domain.GroupMember
+import com.github.diogodelima.groupsservice.domain.GroupMemberId
+import com.github.diogodelima.groupsservice.exceptions.GroupAccessDeniedException
+import com.github.diogodelima.groupsservice.exceptions.GroupNotFoundException
 import com.github.diogodelima.groupsservice.repositories.GroupMemberRepository
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
+import com.github.diogodelima.groupsservice.repositories.GroupRepository
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestTemplate
 
 @Service
 class GroupService(
@@ -17,9 +17,7 @@ class GroupService(
 
 ) {
 
-    private val restTemplate = RestTemplate()
-
-    fun create(name: String, description: String?, token: String): Group {
+    fun create(name: String, description: String?, userId: Int): Group {
 
         val group = groupRepository.save(
             Group(
@@ -27,8 +25,6 @@ class GroupService(
                 description = description
             )
         )
-
-        val userId = getUserId(token)
 
         val member = groupMemberRepository.save(
             GroupMember(
@@ -41,15 +37,14 @@ class GroupService(
         return group.copy(members = listOf(member))
     }
 
-    private fun getUserId(token: String): Int {
+    fun getGroupById(groupId: Int, userId: Int): Group {
 
-        val headers = HttpHeaders()
-        headers.set("Authorization", "Bearer $token")
-        val httpEntity = HttpEntity(null, headers)
-        val response = restTemplate.exchange("http://authorization-server:8080/userinfo", HttpMethod.GET, httpEntity, Map::class.java)
-        val body = response.body as Map<*, *>
+        val group = groupRepository.findById(groupId).orElseThrow { GroupNotFoundException() }
 
-        return body["user_id"] as Int
+        if (group.members.none { it.id.userId == userId })
+            throw GroupAccessDeniedException()
+
+        return group
     }
 
 }

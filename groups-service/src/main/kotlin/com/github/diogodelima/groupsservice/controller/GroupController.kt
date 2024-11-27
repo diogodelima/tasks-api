@@ -25,11 +25,11 @@ class GroupController(
 
     @PostMapping
     fun create(
-        @RequestHeader("Authorization") token: String,
+        @RequestHeader("userId") userId: String,
         @RequestBody @Valid dto: GroupCreateDto
     ): ResponseEntity<ApiResponseDto<GroupDto>> {
 
-        val group = groupService.create(dto.name, dto.description, token.split(" ")[1])
+        val group = groupService.create(dto.name, dto.description, userId.toInt())
 
         return ResponseEntity
             .status(HttpStatus.CREATED)

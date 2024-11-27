@@ -20,6 +20,8 @@ repositories {
     mavenCentral()
 }
 
+val mockitoAgent = configurations.create("mockitoAgent")
+
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -30,7 +32,15 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    mockitoAgent("org.mockito:mockito-core:5.14.0") { isTransitive = false }
+    testImplementation("org.mockito:mockito-core:5.14.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks {
+    test {
+        jvmArgs("-javaagent:${mockitoAgent.asPath}")
+    }
 }
 
 kotlin {
