@@ -17,6 +17,11 @@ class GatewayApplication {
                     .path("/tasks/**")
                     .uri("http://tasks-service:8080")
             }
+            .route("groups-service") { route ->
+                route
+                    .path("/groups/**")
+                    .uri("http://groups-service:8080")
+            }
             .build()
 
 }

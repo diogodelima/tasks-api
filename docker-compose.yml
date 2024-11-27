@@ -16,6 +16,12 @@ services:
       - network
     env_file:
       - .env
+  groups-service:
+    build: ./groups-service
+    networks:
+      - network
+    env_file:
+      - .env
   authorization-server:
     build: ./authorization
     ports:
