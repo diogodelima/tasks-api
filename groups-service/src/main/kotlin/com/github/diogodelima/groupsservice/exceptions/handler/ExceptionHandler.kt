@@ -1,6 +1,7 @@
 package com.github.diogodelima.groupsservice.exceptions.handler
 
 import com.github.diogodelima.groupsservice.dto.ApiResponseDto
+import com.github.diogodelima.groupsservice.exceptions.GroupAccessDeniedException
 import com.github.diogodelima.groupsservice.exceptions.GroupNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,6 +15,16 @@ class ExceptionHandler {
     fun handleNotFound(exception: Exception): ResponseEntity<ApiResponseDto<Any>> =
         ResponseEntity
             .status(HttpStatus.NOT_FOUND)
+            .body(
+                ApiResponseDto(
+                    message = exception.message
+                )
+            )
+
+    @ExceptionHandler(GroupAccessDeniedException::class)
+    fun handleBadRequest(exception: Exception): ResponseEntity<ApiResponseDto<Any>> =
+        ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
             .body(
                 ApiResponseDto(
                     message = exception.message

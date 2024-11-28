@@ -9,11 +9,7 @@ import com.github.diogodelima.groupsservice.services.GroupService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/groups")
@@ -40,6 +36,39 @@ class GroupController(
                 )
             )
 
+    }
+
+    @GetMapping("/{groupId}")
+    fun getGroupById(
+        @RequestHeader("userId") userId: String,
+        @PathVariable groupId: Int
+    ): ResponseEntity<ApiResponseDto<GroupDto>> {
+
+        val group = groupService.getGroupById(groupId, userId.toInt())
+
+        return ResponseEntity
+            .ok(
+                ApiResponseDto(
+                    message = "Group found successfully",
+                    data = group.toDto()
+                )
+            )
+    }
+
+    @GetMapping
+    fun getGroups(
+        @RequestHeader("userId") userId: String
+    ): ResponseEntity<ApiResponseDto<List<GroupDto>>> {
+
+        val groups = groupService.getGroups(userId.toInt())
+
+        return ResponseEntity
+            .ok(
+                ApiResponseDto(
+                    message = "Groups retrieved successfully",
+                    data = groups.map { it.toDto() }.toList()
+                )
+            )
     }
 
 }

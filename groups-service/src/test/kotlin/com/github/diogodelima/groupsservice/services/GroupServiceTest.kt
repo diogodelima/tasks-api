@@ -12,9 +12,11 @@ import com.github.diogodelima.groupsservice.repositories.GroupRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers.argThat
+import org.mockito.ArgumentMatchers.eq
+import org.mockito.BDDMockito.any
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import java.util.*
 import kotlin.test.assertEquals
@@ -36,8 +38,8 @@ class GroupServiceTest {
 
         val expected = group
 
-        given(groupRepository.save(Mockito.any(Group::class.java))).willReturn(group)
-        given(groupMemberRepository.save(Mockito.any(GroupMember::class.java))).willReturn(expected.members[0])
+        given(groupRepository.save(any(Group::class.java))).willReturn(group)
+        given(groupMemberRepository.save(any(GroupMember::class.java))).willReturn(expected.members[0])
 
         val actual = groupService.create("Tarefas de Casa", "Tarefas de casa para a primeira semana de dezembro", 1)
 
@@ -49,10 +51,10 @@ class GroupServiceTest {
 
         val expected = group
 
-        given(groupRepository.save(Mockito.any(Group::class.java))).willReturn(group)
-        given(groupMemberRepository.save(Mockito.any(GroupMember::class.java))).willReturn(expected.members[0])
+        given(groupRepository.save(any(Group::class.java))).willReturn(group)
+        given(groupMemberRepository.save(any(GroupMember::class.java))).willReturn(expected.members[0])
 
-        val actual = groupService.create("Tarefas de Casa", "Tarefas de casa para a primeira semana de dezembro", 1)
+        val actual = groupService.create("Tarefas de Casa", null, 1)
 
         assertEquals(expected, actual)
     }
@@ -62,7 +64,7 @@ class GroupServiceTest {
 
         val expected = group
 
-        given(groupRepository.findById(Mockito.any(Int::class.java))).willReturn(Optional.of(expected))
+        given(groupRepository.findById(eq(1))).willReturn(Optional.of(expected))
 
         assertThrows<GroupAccessDeniedException> {
             groupService.getGroupById(1, 2)
@@ -73,12 +75,47 @@ class GroupServiceTest {
     @Test
     fun `try retrieve a group that doesn't exists should throw an exception`() {
 
-        given(groupRepository.findById(Mockito.any(Int::class.java))).willReturn(Optional.empty())
+        given(groupRepository.findById(argThat { it != 1 })).willReturn(Optional.empty())
 
         assertThrows<GroupNotFoundException> {
             groupService.getGroupById(4, 1)
         }
 
+    }
+
+    @Test
+    fun `edit a group that the user is not a member of should throw an exception`() {
+
+        val expected = group
+
+        given(groupRepository.findById(eq(1))).willReturn(Optional.of(expected))
+
+        assertThrows<GroupAccessDeniedException> {
+            groupService.editGroupById(1, 3, "Tarefas de Casa", "Tarefas de casa para a primeira semana de dezembro")
+        }
+
+    }
+
+    @Test
+    fun `edit a group that doesn't exists should throw an exception`() {
+
+        given(groupRepository.findById(argThat { it != 1 })).willReturn(Optional.empty())
+
+        assertThrows<GroupNotFoundException> {
+            groupService.editGroupById(4, 1, "Tarefas de Casa", "Tarefas de casa para a primeira semana de dezembro")
+        }
+
+    }
+
+    @Test
+    fun `edit the description of a group should succeed`() {
+
+        given(groupRepository.findById(eq(2))).willReturn(Optional.of(groupBeforeEdit))
+        given(groupRepository.save(eq(groupAfterEdit))).willReturn(groupAfterEdit)
+
+        val group = groupService.editGroupById(2, 1, null, "Tarefas da Escola para a primeira semana de fevereiro")
+
+        assertEquals(groupAfterEdit, group)
     }
 
 }
@@ -94,6 +131,38 @@ private val group = Group(
                 id = 1,
                 name = "Tarefas de Casa",
                 description = "Tarefas de casa para a primeira semana de dezembro"
+            ),
+            role = Group.Role.OWNER
+        )
+    )
+)
+
+private val groupBeforeEdit = Group(
+    id = 2,
+    name = "Tarefas da Escola",
+    description = "Tarefas relacionadas à escola",
+    members = listOf(
+        GroupMember(
+            id = GroupMemberId(userId = 1, groupId = 2),
+            group = Group(
+                name = "Tarefas da Escola",
+                description = "Tarefas relacionadas à escola"
+            ),
+            role = Group.Role.OWNER
+        )
+    )
+)
+
+private val groupAfterEdit = Group(
+    id = 2,
+    name = "Tarefas da Escola",
+    description = "Tarefas da Escola para a primeira semana de fevereiro",
+    members = listOf(
+        GroupMember(
+            id = GroupMemberId(userId = 1, groupId = 2),
+            group = Group(
+                name = "Tarefas da Escola",
+                description = "Tarefas relacionadas à escola"
             ),
             role = Group.Role.OWNER
         )
