@@ -7,6 +7,7 @@ import com.github.diogodelima.groupsservice.domain.GroupMember
 import com.github.diogodelima.groupsservice.domain.GroupMemberId
 import com.github.diogodelima.groupsservice.exceptions.GroupAccessDeniedException
 import com.github.diogodelima.groupsservice.exceptions.GroupNotFoundException
+import com.github.diogodelima.groupsservice.exceptions.GroupPermissionException
 import com.github.diogodelima.groupsservice.repositories.GroupMemberRepository
 import com.github.diogodelima.groupsservice.repositories.GroupRepository
 import org.junit.jupiter.api.Test
@@ -108,6 +109,17 @@ class GroupServiceTest {
     }
 
     @Test
+    fun `edit a group that the user is not at least moderator should thrown an exception`() {
+
+        given(groupRepository.findById(eq(4))).willReturn(Optional.of(groupWithOtherMembers))
+
+        assertThrows<GroupPermissionException> {
+            groupService.editGroupById(4, 2, "Tarefas de Casa", "Tarefas de casa para a primeira semana de dezembro")
+        }
+
+    }
+
+    @Test
     fun `edit the description of a group should succeed`() {
 
         given(groupRepository.findById(eq(2))).willReturn(Optional.of(groupBeforeEdit))
@@ -118,7 +130,60 @@ class GroupServiceTest {
         assertEquals(groupAfterEdit, group)
     }
 
+    @Test
+    fun `get tasks from a group that doesn't exists should throw an exception`() {
+
+        given(groupRepository.findById(argThat { it != 1 })).willReturn(Optional.empty())
+
+        assertThrows<GroupNotFoundException> {
+            groupService.getTasks(4, 1)
+        }
+
+    }
+
+    @Test
+    fun `get tasks from a group that the user is not a member of should throw an exception`() {
+
+        val expected = group
+
+        given(groupRepository.findById(eq(1))).willReturn(Optional.of(expected))
+
+        assertThrows<GroupAccessDeniedException> {
+            groupService.getTasks(1, 2)
+        }
+
+    }
+
+    @Test
+    fun `get tasks from a group should succeed`() {
+
+        val expected = listOf(1, 2, 3)
+
+        given(groupRepository.findById(eq(1))).willReturn(Optional.of(groupWithTasks))
+
+        val actual = groupService.getTasks(1, 1)
+        assertEquals(expected, actual)
+    }
+
 }
+
+private val groupWithTasks = Group(
+    id = 3,
+    name = "Tarefas do trabalho",
+    description = "Tarefas relacionadas ao trabalho para o mês de dezembro",
+    members = listOf(
+        GroupMember(
+            id = GroupMemberId(userId = 1, groupId = 3),
+            group = Group(
+                id = 3,
+                name = "Tarefas do trabalho",
+                description = "Tarefas relacionadas ao trabalho para o mês de dezembro",
+            ),
+            role = Group.Role.OWNER
+        )
+    ),
+    tasksIds = listOf(1, 2, 3)
+)
 
 private val group = Group(
     id = 1,
@@ -133,6 +198,32 @@ private val group = Group(
                 description = "Tarefas de casa para a primeira semana de dezembro"
             ),
             role = Group.Role.OWNER
+        )
+    )
+)
+
+private val groupWithOtherMembers = Group(
+    id = 4,
+    name = "Tarefas de Casa",
+    description = "Tarefas de casa para a primeira semana de dezembro",
+    members = listOf(
+        GroupMember(
+            id = GroupMemberId(userId = 1, groupId = 4),
+            group = Group(
+                id = 4,
+                name = "Tarefas de Casa",
+                description = "Tarefas de casa para a primeira semana de dezembro"
+            ),
+            role = Group.Role.OWNER
+        ),
+        GroupMember(
+            id = GroupMemberId(userId = 2, groupId = 4),
+            group = Group(
+                id = 4,
+                name = "Tarefas do trabalho",
+                description = "Tarefas relacionadas ao trabalho para o mês de dezembro",
+            ),
+            role = Group.Role.MEMBER
         )
     )
 )

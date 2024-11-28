@@ -24,4 +24,9 @@ data class GroupMember(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val role: Group.Role
-)
+
+) {
+
+    fun isAtLeast(role: Group.Role) = this.role.ordinal >= role.ordinal
+
+}

@@ -23,6 +23,8 @@ data class Group(
 
 ) {
 
+    fun getMember(userId: Int) = members.find { it.id.userId == userId }
+
     enum class Role {
 
         MEMBER,

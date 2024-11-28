@@ -5,11 +5,14 @@ import com.github.diogodelima.groupsservice.domain.GroupMember
 import com.github.diogodelima.groupsservice.domain.GroupMemberId
 import com.github.diogodelima.groupsservice.exceptions.GroupAccessDeniedException
 import com.github.diogodelima.groupsservice.exceptions.GroupNotFoundException
+import com.github.diogodelima.groupsservice.exceptions.GroupPermissionException
 import com.github.diogodelima.groupsservice.repositories.GroupMemberRepository
 import com.github.diogodelima.groupsservice.repositories.GroupRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+
+const val PAGE_SIZE = 10
 
 @Service
 class GroupService(
@@ -39,12 +42,8 @@ class GroupService(
         return group.copy(members = listOf(member))
     }
 
-    fun getGroups(userId: Int): Page<Group> {
-
-        val page = groupRepository.findGroupsByUserId(userId, PageRequest.of(0, 10))
-
-        return page
-    }
+    fun getGroups(userId: Int, pageNumber: Int): Page<Group> =
+        groupRepository.findGroupsByUserId(userId, PageRequest.of(pageNumber, PAGE_SIZE))
 
     fun getGroupById(groupId: Int, userId: Int): Group {
 
@@ -63,12 +62,28 @@ class GroupService(
         if (group.members.none { it.id.userId == userId })
             throw GroupAccessDeniedException()
 
+        val member = group.getMember(userId)!!
+        val role = Group.Role.MODERATOR
+
+        if (!member.isAtLeast(role))
+            throw GroupPermissionException(role)
+
         return groupRepository.save(
             group.copy(
                 name = name ?: group.name,
                 description = description ?: group.description
             ))
 
+    }
+
+    fun getTasks(groupId: Int, userId: Int): List<Int> {
+
+        val group = groupRepository.findById(groupId).orElseThrow { GroupNotFoundException() }
+
+        if (group.members.none { it.id.userId == userId })
+            throw GroupAccessDeniedException()
+
+        return group.tasksIds
     }
 
 }
