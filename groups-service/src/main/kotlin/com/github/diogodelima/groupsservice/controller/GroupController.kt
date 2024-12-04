@@ -93,6 +93,22 @@ class GroupController(
             )
     }
 
+    @DeleteMapping("/{groupId}")
+    fun delete(
+        @RequestHeader("userId") userId: String,
+        @PathVariable groupId: Int
+    ): ResponseEntity<ApiResponseDto<Any>> {
+
+        groupService.deleteGroup(groupId, userId.toInt())
+
+        return ResponseEntity
+            .ok(
+                ApiResponseDto(
+                    message = "Group deleted successfully"
+                )
+            )
+    }
+
 }
 
 private fun Group.toDto() = GroupDto(

@@ -58,11 +58,7 @@ class GroupService(
     fun editGroupById(groupId: Int, userId: Int, name: String?, description: String?): Group {
 
         val group = groupRepository.findById(groupId).orElseThrow { GroupNotFoundException() }
-
-        if (group.members.none { it.id.userId == userId })
-            throw GroupAccessDeniedException()
-
-        val member = group.getMember(userId)!!
+        val member = group.getMember(userId) ?: throw GroupAccessDeniedException()
         val role = Group.Role.MODERATOR
 
         if (!member.isAtLeast(role))
@@ -84,6 +80,18 @@ class GroupService(
             throw GroupAccessDeniedException()
 
         return group.tasksIds
+    }
+
+    fun deleteGroup(groupId: Int, userId: Int) {
+
+        val group = groupRepository.findById(groupId).orElseThrow { GroupNotFoundException() }
+        val member = group.getMember(userId) ?: throw GroupAccessDeniedException()
+        val role = Group.Role.OWNER
+
+        if (!member.isAtLeast(role))
+            throw GroupPermissionException(role)
+
+        groupRepository.delete(group)
     }
 
 }
