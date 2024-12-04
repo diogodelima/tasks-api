@@ -165,6 +165,47 @@ class GroupServiceTest {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun `delete group that the user is not member of should throw an exception`() {
+
+        given(groupRepository.findById(eq(1))).willReturn(Optional.of(group))
+
+        assertThrows<GroupAccessDeniedException> {
+            groupService.deleteGroup(1, 2)
+        }
+
+    }
+
+    @Test
+    fun `delete group that the user is not owner of should throw an exception`() {
+
+        given(groupRepository.findById(eq(4))).willReturn(Optional.of(groupWithOtherMembers))
+
+        assertThrows<GroupPermissionException> {
+            groupService.deleteGroup(4, 2)
+        }
+
+    }
+
+    @Test
+    fun `delete group that doesn't exists should throw an exception`() {
+
+        given(groupRepository.findById(eq(10))).willReturn(Optional.empty())
+
+        assertThrows<GroupNotFoundException> {
+            groupService.deleteGroup(10, 1)
+        }
+
+    }
+
+    @Test
+    fun `delete group should succeeds`() {
+
+        given(groupRepository.findById(eq(1))).willReturn(Optional.of(group))
+
+        groupService.deleteGroup(1, 1)
+    }
+
 }
 
 private val groupWithTasks = Group(
